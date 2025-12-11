@@ -52,18 +52,18 @@ class MQTTAlertHandler:
     def _on_simulator_connect(self, client, userdata, flags, rc):
         """Handler for MQTT connection event to simulator broker."""
         if rc == 0:
-            logger.info(f"✓ Connected to simulator MQTT broker at {self.simulator_broker}:{self.simulator_port}")
+            logger.info(f"[SIMULATOR] Connected to broker at {self.simulator_broker}:{self.simulator_port}")
             client.subscribe(self.simulator_topic)
-            logger.info(f"✓ Subscribed to simulator topic: {self.simulator_topic}")
+            logger.info(f"[SIMULATOR] Subscribed to topic: {self.simulator_topic}")
         else:
-            logger.error(f"✗ Simulator connection failed with code {rc}")
+            logger.error(f"[SIMULATOR] Connection failed with code {rc}")
     
     def _on_client_connect(self, client, userdata, flags, rc):
         """Handler for MQTT connection event to client broker."""
         if rc == 0:
-            logger.info(f"✓ Connected to client MQTT broker at {self.client_broker}:{self.client_port}")
+            logger.info(f"[CLIENT] Connected to broker at {self.client_broker}:{self.client_port}")
         else:
-            logger.error(f"✗ Client broker connection failed with code {rc}")
+            logger.error(f"[CLIENT] Connection failed with code {rc}")
     
     def _on_simulator_disconnect(self, client, userdata, rc):
         """Handler for MQTT disconnection event from simulator broker."""
@@ -79,7 +79,7 @@ class MQTTAlertHandler:
         """Process incoming MQTT messages with emergency data."""
         try:
             payload = json.loads(msg.payload.decode())
-            logger.info(f"📨 Received emergency event: {payload.get('event_type', 'UNKNOWN')}")
+            logger.info(f"[SIMULATOR] Received emergency event: {payload.get('event_type', 'UNKNOWN')}")
             
             # Parse incoming event
             event = EmergencyEvent(**payload)
@@ -139,9 +139,9 @@ class MQTTAlertHandler:
         result = self.client_publisher.publish(self.broadcast_topic, payload, qos=1)
         
         if result.rc == mqtt.MQTT_ERR_SUCCESS:
-            logger.info(f"📢 Broadcast alert {alert.id} to all clients")
+            logger.info(f"[CLIENT] Published alert {alert.id} to topic: {self.broadcast_topic}")
         else:
-            logger.error(f"Failed to publish alert {alert.id}")
+            logger.error(f"[CLIENT] Failed to publish alert {alert.id}")
     
     def send_alert_to_client(self, client_id: str, alert: Alert):
         """Send alert to a specific client."""
@@ -159,9 +159,9 @@ class MQTTAlertHandler:
         result = self.client_publisher.publish(topic, payload, qos=1)
         
         if result.rc == mqtt.MQTT_ERR_SUCCESS:
-            logger.info(f"📨 Sent alert {alert.id} to client {client_id}")
+            logger.info(f"[CLIENT] Published alert {alert.id} to topic: {topic}")
         else:
-            logger.error(f"Failed to send alert to client {client_id}")
+            logger.error(f"[CLIENT] Failed to send alert to client {client_id}")
     
     def start(self):
         """Start the MQTT clients and connect to both brokers."""
@@ -174,7 +174,7 @@ class MQTTAlertHandler:
             self.client_publisher.connect(self.client_broker, self.client_port, keepalive=60)
             self.client_publisher.loop_start()
             
-            logger.info(f"🚀 Alert Service MQTT Handler started")
+            logger.info("Alert Service MQTT Handler started")
         except Exception as e:
             logger.error(f"Failed to connect to MQTT brokers: {e}")
             raise

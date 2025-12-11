@@ -59,7 +59,7 @@ class AlertService:
     def start(self):
         """Start the Alert Service."""
         logger.info("=" * 50)
-        logger.info("🚨 Starting Alert Service 🚨")
+        logger.info("Starting Alert Service")
         logger.info("=" * 50)
         
         try:
