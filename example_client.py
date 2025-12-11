@@ -49,9 +49,9 @@ def on_message(client, userdata, msg):
 
 
 def main():
-    # Configuration
+    # Configuration - Connect to Alert-Service client broker (port 1884)
     broker = "localhost"  # Change to your broker address
-    port = 1883
+    port = 1884  # Alert-Service client broker port
     client_id = sys.argv[1] if len(sys.argv) > 1 else "client_123"
     
     # Create MQTT client
@@ -60,7 +60,7 @@ def main():
     client.on_connect = on_connect
     client.on_message = on_message
     
-    print(f"🔌 Connecting to MQTT broker at {broker}:{port}")
+    print(f"🔌 Connecting to Alert-Service MQTT broker at {broker}:{port}")
     print(f"👤 Client ID: {client_id}")
     
     try:

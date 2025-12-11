@@ -1,26 +1,38 @@
 # Alert Service
 
-A real-time alert service for smart stadiums that receives emergency events from a stadium simulator via MQTT and broadcasts alerts to connected clients.
+A real-time alert service for smart stadiums that receives emergency events from the Stadium-Event-Generator via MQTT and broadcasts alerts to connected clients through its own MQTT broker.
 
 ## 🏗️ Architecture
 
 ```
-Stadium Simulator → [MQTT] → Alert Service → [MQTT] → Clients
-                    (Mosquitto Broker)
+Stadium-Event-Generator → [MQTT Port 1883] → Alert Service
+                                                    ↓
+                                           [MQTT Port 1884]
+                                                    ↓
+                                                Clients
 ```
 
 The service:
-1. **Receives** emergency events from a stadium simulator on `stadium/events/emergency`
+1. **Receives** emergency events from Stadium-Event-Generator broker (port 1883) on `stadium/events/emergency`
 2. **Processes** events and converts them to alerts
-3. **Broadcasts** alerts to all clients on `alerts/broadcast`
+3. **Broadcasts** alerts to clients via its own broker (port 1884) on `alerts/broadcast`
 4. **Sends** targeted alerts to specific clients on `alerts/client/{client_id}`
 
 ## 🚀 Quick Start
 
+### Prerequisites
+- Stadium-Event-Generator must be running (provides MQTT broker on port 1883)
+- Docker and Docker Compose installed
+
 ### Option 1: Docker Compose (Recommended)
 
 ```bash
-# Start the service with Mosquitto broker
+# Start the Stadium-Event-Generator first (if not already running)
+cd ../Stadium-Event-Generator
+docker-compose up -d
+
+# Start Alert-Service with its own Mosquitto broker
+cd ../Alert-Service
 docker-compose up -d
 
 # View logs
@@ -36,42 +48,65 @@ docker-compose down
 # Install dependencies
 pip install -r requirements.txt
 
-# Start Mosquitto broker (in separate terminal)
-docker run -p 1883:1883 -p 9001:9001 eclipse-mosquitto:2.0
+# Ensure Stadium-Event-Generator broker is running on port 1883
+
+# Start Alert-Service's own Mosquitto broker (in separate terminal)
+docker run -p 1884:1883 -p 9002:9001 eclipse-mosquitto:2.0
 
 # Run the service
 python main.py
 ```
 
-## 📡 MQTT Topics
+## 📡 MQTT Brokers & Topics
 
+### Simulator Broker (Port 1883 - Stadium-Event-Generator)
 | Topic | Direction | Description |
 |-------|-----------|-------------|
-| `stadium/events/emergency` | Simulator → Service | Emergency events from stadium |
-| `alerts/broadcast` | Service → All Clients | Broadcast alerts to everyone |
-| `alerts/client/{client_id}` | Service → Specific Client | Targeted alerts |
+| `stadium/events/emergency` | Simulator → Alert Service | Emergency events from stadium |
+
+### Client Broker (Port 1884 - Alert Service)
+| Topic | Direction | Description |
+|-------|-----------|-------------|
+| `alerts/broadcast` | Alert Service → All Clients | Broadcast alerts to everyone |
+| `alerts/client/{client_id}` | Alert Service → Specific Client | Targeted alerts |
+
+### WebSocket Ports
+- Client connections: `ws://localhost:9002`
+- Simulator broker: `ws://localhost:9001`
 
 ## 🧪 Testing
 
 ### 1. Start the Alert Service
+## 🧪 Testing
+
+### 1. Start Stadium-Event-Generator
 ```bash
-python main.py
+cd ../Stadium-Event-Generator
+docker-compose up -d
 ```
 
-### 2. Run Test Client (in another terminal)
+### 2. Start Alert Service
 ```bash
+cd ../Alert-Service
+docker-compose up -d
+```
+
+### 3. Run Test Client (in another terminal)
+```bash
+# Client connects to Alert-Service broker on port 1884
 python example_client.py client_123
 ```
 
-### 3. Simulate Emergency Events (in another terminal)
+### 4. Simulate Emergency Events
+The Stadium-Event-Generator will publish events automatically. You can also use the test simulator:
 ```bash
 python test_simulator.py
 ```
 
 You should see:
-- Simulator publishing events
-- Alert Service processing and broadcasting
-- Client receiving alerts
+- Stadium-Event-Generator publishing events on port 1883
+- Alert Service receiving from port 1883 and publishing to port 1884
+- Client receiving alerts from port 1884
 
 ## 📦 Project Structure
 

@@ -1,0 +1,88 @@
+1765459219: mosquitto version 2.0.22 starting
+1765459219: Config loaded from /mosquitto/config/mosquitto.conf.
+1765459219: Opening ipv4 listen socket on port 1883.
+1765459219: Opening ipv6 listen socket on port 1883.
+1765459219: Opening websockets listen socket on port 9001.
+1765459219: mosquitto version 2.0.22 running
+1765459220: New connection from 172.19.0.3:46663 on port 1883.
+1765459220: New client connected from 172.19.0.3:46663 as alert_service (p2, c1, k60).
+1765460891: Client alert_service disconnected.
+1765460892: mosquitto version 2.0.22 terminating
+1765460892: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1765460896: mosquitto version 2.0.22 starting
+1765460896: Config loaded from /mosquitto/config/mosquitto.conf.
+1765460896: Opening ipv4 listen socket on port 1883.
+1765460896: Opening ipv6 listen socket on port 1883.
+1765460896: Opening websockets listen socket on port 9001.
+1765460896: mosquitto version 2.0.22 running
+1765460898: New connection from 172.19.0.3:49467 on port 1883.
+1765460898: New client connected from 172.19.0.3:49467 as alert_service (p2, c1, k60).
+1765460948: Client alert_service disconnected.
+1765460949: mosquitto version 2.0.22 terminating
+1765460949: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1765461085: mosquitto version 2.0.22 starting
+1765461085: Config loaded from /mosquitto/config/mosquitto.conf.
+1765461085: Opening ipv4 listen socket on port 1883.
+1765461085: Opening ipv6 listen socket on port 1883.
+1765461085: Opening websockets listen socket on port 9001.
+1765461085: mosquitto version 2.0.22 running
+1765461087: New connection from 172.19.0.3:48797 on port 1883.
+1765461087: New client connected from 172.19.0.3:48797 as alert_service (p2, c1, k60).
+1765461554: Client alert_service disconnected.
+1765461555: mosquitto version 2.0.22 terminating
+1765461555: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1765461558: mosquitto version 2.0.22 starting
+1765461558: Config loaded from /mosquitto/config/mosquitto.conf.
+1765461558: Opening ipv4 listen socket on port 1883.
+1765461558: Opening ipv6 listen socket on port 1883.
+1765461558: Opening websockets listen socket on port 9001.
+1765461558: mosquitto version 2.0.22 running
+1765461559: New connection from 172.19.0.3:33943 on port 1883.
+1765461559: New client connected from 172.19.0.3:33943 as alert_service (p2, c1, k60).
+1765461586: Client alert_service disconnected.
+1765461587: mosquitto version 2.0.22 terminating
+1765461587: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1765464532: mosquitto version 2.0.22 starting
+1765464532: Config loaded from /mosquitto/config/mosquitto.conf.
+1765464532: Opening ipv4 listen socket on port 1883.
+1765464532: Opening ipv6 listen socket on port 1883.
+1765464532: Opening websockets listen socket on port 9001.
+1765464532: mosquitto version 2.0.22 running
+1765464534: New connection from 172.19.0.3:35451 on port 1883.
+1765464534: New client connected from 172.19.0.3:35451 as alert_service (p2, c1, k60).
+1765464834: Client alert_service disconnected.
+1765464834: mosquitto version 2.0.22 terminating
+1765464834: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1765464837: mosquitto version 2.0.22 starting
+1765464837: Config loaded from /mosquitto/config/mosquitto.conf.
+1765464837: Opening ipv4 listen socket on port 1883.
+1765464837: Opening ipv6 listen socket on port 1883.
+1765464837: Opening websockets listen socket on port 9001.
+1765464837: mosquitto version 2.0.22 running
+1765464838: New connection from 172.19.0.3:35051 on port 1883.
+1765464838: New client connected from 172.19.0.3:35051 as alert_service (p2, c1, k60).
+1765465098: Client alert_service disconnected.
+1765465099: mosquitto version 2.0.22 terminating
+1765465099: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1765465101: mosquitto version 2.0.22 starting
+1765465101: Config loaded from /mosquitto/config/mosquitto.conf.
+1765465101: Opening ipv4 listen socket on port 1883.
+1765465101: Opening ipv6 listen socket on port 1883.
+1765465101: Opening websockets listen socket on port 9001.
+1765465101: mosquitto version 2.0.22 running
+1765465102: New connection from 172.19.0.3:48653 on port 1883.
+1765465102: New client connected from 172.19.0.3:48653 as alert_service (p2, c1, k60).
+1765465734: Client alert_service disconnected.
+1765465734: mosquitto version 2.0.22 terminating
+1765465734: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1765465741: mosquitto version 2.0.22 starting
+1765465741: Config loaded from /mosquitto/config/mosquitto.conf.
+1765465741: Opening ipv4 listen socket on port 1883.
+1765465741: Opening ipv6 listen socket on port 1883.
+1765465741: Opening websockets listen socket on port 9001.
+1765465741: mosquitto version 2.0.22 running
+1765465749: New connection from 172.19.0.3:33469 on port 1883.
+1765465749: New client connected from 172.19.0.3:33469 as alert_service_publisher (p2, c1, k60).
+1765466186: Client alert_service_publisher disconnected.
+1765466186: mosquitto version 2.0.22 terminating
+1765466186: Saving in-memory database to /mosquitto/data//mosquitto.db.

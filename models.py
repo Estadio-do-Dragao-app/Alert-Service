@@ -54,9 +54,15 @@ class EmergencyEvent(BaseModel):
     event_id: str
     event_type: str
     timestamp: datetime
+    location_id: Optional[str] = None
     location: Optional[dict] = None
     severity: str
-    details: dict
+    metadata: Optional[dict] = None  # Simulator uses 'metadata', keep 'details' for backwards compatibility
+    details: Optional[dict] = None
+    
+    def get_details(self) -> dict:
+        """Get details/metadata regardless of which field is used"""
+        return self.metadata or self.details or {}
 
 
 class Alert(BaseModel):

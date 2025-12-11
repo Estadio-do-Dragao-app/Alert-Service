@@ -18,15 +18,19 @@ class AlertService:
     
     def __init__(self):
         # Get configuration from environment or use defaults
-        broker = os.getenv('MQTT_BROKER', 'localhost')
-        port = int(os.getenv('MQTT_PORT', 1883))
-        simulator_topic = os.getenv('SIMULATOR_TOPIC', 'stadium/events/emergency')
+        simulator_broker = os.getenv('SIMULATOR_BROKER', 'localhost')
+        simulator_port = int(os.getenv('SIMULATOR_PORT', 1883))
+        client_broker = os.getenv('MQTT_BROKER', 'localhost')
+        client_port = int(os.getenv('MQTT_PORT', 1884))
+        simulator_topic = os.getenv('SIMULATOR_TOPIC', 'stadium/events/alerts')
         client_topic_prefix = os.getenv('CLIENT_TOPIC_PREFIX', 'alerts/client')
         
-        # Initialize MQTT handler
+        # Initialize MQTT handler with dual broker support
         self.mqtt_handler = MQTTAlertHandler(
-            broker=broker,
-            port=port,
+            simulator_broker=simulator_broker,
+            simulator_port=simulator_port,
+            client_broker=client_broker,
+            client_port=client_port,
             simulator_topic=simulator_topic,
             client_topic_prefix=client_topic_prefix
         )
