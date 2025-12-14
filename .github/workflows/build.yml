@@ -2,40 +2,14 @@ name: Build and Test Alert Service
 
 on:
   push:
-    branches:
-      - main
-      - develop
+    branches: [main, develop]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
-    
-    services:
-      # Simulator broker (receives events from stadium simulator)
-      stadium-mosquitto:
-        image: eclipse-mosquitto:2.0
-        ports:
-          - 1883:1883
-        options: >-
-          --health-cmd "timeout 5 sh -c 'mosquitto_pub -h localhost -p 1883 -t test -m test' || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      
-      # Client broker (publishes alerts to clients)
-      client-mosquitto:
-        image: eclipse-mosquitto:2.0
-        ports:
-          - 1884:1884
-        options: >-
-          --health-cmd "timeout 5 sh -c 'mosquitto_pub -h localhost -p 1884 -t test -m test' || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     
     steps:
       - uses: actions/checkout@v4
@@ -50,60 +24,35 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest pytest-asyncio coverage
-      
-      - name: Wait for MQTT brokers
-        run: |
-          echo "Waiting for MQTT brokers to be ready..."
-          # Test broker 1
-          timeout 30 bash -c 'until mosquitto_pub -h localhost -p 1883 -t test -m "test" 2>/dev/null; do sleep 1; done'
-          # Test broker 2  
-          timeout 30 bash -c 'until mosquitto_pub -h localhost -p 1884 -t test -m "test" 2>/dev/null; do sleep 1; done'
-          echo "Both MQTT brokers are ready!"
+          pip install pytest pytest-cov pytest-mock coverage
       
       - name: Run tests with coverage
         env:
-          MQTT_BROKER: localhost
-          MQTT_PORT: 1884
-          SIMULATOR_BROKER: localhost
-          SIMULATOR_PORT: 1883
-          SIMULATOR_TOPIC: stadium/events/alerts
-          CLIENT_TOPIC_PREFIX: alerts/client
-          LOG_LEVEL: INFO
           TESTING: 'True'
         run: |
           echo "Running tests with coverage..."
-          python -m coverage run -m pytest tests/ -v
-          
-          echo "Generating coverage XML report..."
-          python -m coverage xml -o coverage.xml
-          
-          echo "Generating coverage HTML report..."
-          python -m coverage html -d coverage_html
+          python -m pytest tests/ -v --cov=./ --cov-report=xml --cov-report=html
           
           echo "Coverage Summary:"
           python -m coverage report
           
           echo "Generated coverage files:"
-          ls -la *.xml
-          ls -la coverage_html/
+          ls -la coverage.xml
+          ls -la htmlcov/
       
       - name: Upload coverage reports
-        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-reports-alert-service
+          name: coverage-reports
           path: |
             coverage.xml
-            coverage_html/
+            htmlcov/
           retention-days: 7
 
   sonarqube:
     name: SonarQube Scan
     runs-on: ubuntu-latest
     needs: test
-    if: success() || failure()
-    
     steps:
       - uses: actions/checkout@v4
         with:
@@ -112,25 +61,7 @@ jobs:
       - name: Download coverage reports
         uses: actions/download-artifact@v4
         with:
-          name: coverage-reports-alert-service
-      
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      
-      - name: Verify coverage file
-        run: |
-          echo "Verifying coverage.xml exists..."
-          if [ -f "coverage.xml" ]; then
-            echo "coverage.xml found!"
-            echo "First 5 lines:"
-            head -5 coverage.xml
-          else
-            echo "ERROR: coverage.xml not found!"
-            ls -la
-            exit 1
-          fi
+          name: coverage-reports
       
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v7.0.0
@@ -139,7 +70,7 @@ jobs:
         with:
           args: >
             -Dsonar.sources=.
-            -Dsonar.exclusions=tests/**,test_*.py,conftest.py,example_client.py,mqtt_configs.py,mosquitto.conf,docker-compose.yml,mosquitto.log,*.md
+            -Dsonar.exclusions=tests/**,example_client.py,mqtt_configs.py,mosquitto.conf,docker-compose.yml,mosquitto.log,*.md
             -Dsonar.tests=tests
             -Dsonar.test.inclusions=tests/**/*.py
             -Dsonar.python.coverage.reportPaths=coverage.xml
