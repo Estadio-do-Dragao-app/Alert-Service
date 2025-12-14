@@ -28,4 +28,4 @@ networks:
     name: stadium-event-generator_stadium-network
   client_network:
     external: true
-    name: client-broker_client-network
+    name: service-to-client-broker_client-network
