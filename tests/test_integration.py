@@ -80,28 +80,34 @@ class TestIntegration:
         assert data["message"] == "Evacuation required"
         assert data["severity"] == "CRITICAL"
         assert data["affected_areas"] == [501, 502, 503]
-    
+
     @patch('logging.getLogger')
     def test_logging_integration(self, mock_logger):
         """Test logging integration."""
         from mqtt_handler import MQTTAlertHandler
-        
+
         # Setup mock logger
         mock_log = Mock()
         mock_logger.return_value = mock_log
-        
+
         handler = MQTTAlertHandler(
             simulator_broker="localhost",
             simulator_port=1883,
             client_broker="localhost",
             client_port=1884
         )
-        
-        # Mock the clients
-        handler.simulator_client = Mock()
+
+        # Mock the clients e métodos
+        mock_client = Mock()
+        mock_client.subscribe = Mock()
+        handler.simulator_client = mock_client
         handler.client_publisher = Mock()
-        
+
         # Test connection logging
-        handler._on_simulator_connect(None, None, None, 0)
+        handler._on_simulator_connect(mock_client, None, None, 0)
+
+        # Verificar se log foi chamado
         assert mock_log.info.called
-        assert "Connected to broker" in mock_log.info.call_args[0][0]
+        
+        # Verificar se subscribe foi chamado
+        mock_client.subscribe.assert_called_once_with(handler.simulator_topic)

@@ -52,26 +52,24 @@ class TestAlertService:
     def test_service_start_stop(self):
         """Test starting and stopping the service."""
         service = AlertService()
-        
+
         # Mock the MQTT handler
         mock_handler = Mock()
         mock_handler.start = Mock()
         mock_handler.stop = Mock()
         service.mqtt_handler = mock_handler
-        
+
         # Mock time.sleep to break the loop
         with patch('time.sleep', side_effect=KeyboardInterrupt):
             # Start service (will be interrupted immediately)
             service.start()
-            
+
             # Verify handler was started
             mock_handler.start.assert_called_once()
-            
-            # Stop service
-            service.stop()
-            
-            # Verify handler was stopped
-            mock_handler.stop.assert_called_once()
+
+            # No need to call service.stop() manually - it's called in finally block
+            # Verify handler was stopped exactly once (by finally block)
+            assert mock_handler.stop.call_count == 1
     
     def test_signal_handler(self):
         """Test signal handler for graceful shutdown."""
