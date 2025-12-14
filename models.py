@@ -56,8 +56,9 @@ class EmergencyEvent(BaseModel):
     timestamp: datetime
     location_id: Optional[str] = None
     location: Optional[dict] = None
+    level: Optional[int] = None
     severity: str
-    metadata: Optional[dict] = None  # Simulator uses 'metadata', keep 'details' for backwards compatibility
+    metadata: Optional[dict] = None
     details: Optional[dict] = None
     
     def get_details(self) -> dict:
@@ -69,8 +70,9 @@ class Alert(BaseModel):
     """Alert to be sent to clients"""
     id: int
     type: AlertType
-    disabled_tiles: list[int] = Field(default_factory=list)  # Just tile IDs for efficiency
+    disabled_tiles: list = Field(default_factory=list)  # Tile IDs or Sector Names
     message: str
+    level: Optional[int] = None
     timestamp: datetime = Field(default_factory=datetime.now)
     severity: str = "HIGH"
     
@@ -80,6 +82,7 @@ class ClientAlert(BaseModel):
     alert_id: int
     alert_type: str
     message: str
+    level: Optional[int] = None
     timestamp: str
     severity: str
-    affected_areas: list[int] = Field(default_factory=list)
+    affected_areas: list = Field(default_factory=list)

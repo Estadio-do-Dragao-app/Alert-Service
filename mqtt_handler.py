@@ -115,13 +115,18 @@ class MQTTAlertHandler:
         # Get details/metadata from event
         details = event.get_details()
         
+        # Simulator sends 'affected_areas' (list of strings/sectors)
+        # Alert model uses 'disabled_tiles' (generic list)
+        areas = details.get("affected_areas", details.get("disabled_tiles", []))
+        
         return Alert(
             id=self.alert_id_counter,
             type=alert_type,
-            disabled_tiles=details.get("disabled_tiles", []),
+            disabled_tiles=areas,
             message=f"{event.event_type}: {details.get('description', 'Emergency detected')}",
             timestamp=event.timestamp,
-            severity=event.severity
+            severity=event.severity,
+            level=event.level
         )
     
     def broadcast_alert(self, alert: Alert):
@@ -132,14 +137,15 @@ class MQTTAlertHandler:
             message=alert.message,
             timestamp=alert.timestamp.isoformat(),
             severity=alert.severity,
-            affected_areas=alert.disabled_tiles
+            affected_areas=alert.disabled_tiles,
+            level=alert.level
         )
         
         payload = client_alert.model_dump_json()
         result = self.client_publisher.publish(self.broadcast_topic, payload, qos=1)
         
         if result.rc == mqtt.MQTT_ERR_SUCCESS:
-            logger.info(f"[CLIENT] Published alert {alert.id} to topic: {self.broadcast_topic}")
+            logger.info(f"[CLIENT] Published alert {alert.id} to topic: {self.broadcast_topic} (Level: {alert.level})")
         else:
             logger.error(f"[CLIENT] Failed to publish alert {alert.id}")
     
@@ -151,7 +157,8 @@ class MQTTAlertHandler:
             message=alert.message,
             timestamp=alert.timestamp.isoformat(),
             severity=alert.severity,
-            affected_areas=alert.disabled_tiles
+            affected_areas=alert.disabled_tiles,
+            level=alert.level
         )
         
         topic = f"{self.client_topic_prefix}/{client_id}"
