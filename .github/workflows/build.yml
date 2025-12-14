@@ -69,6 +69,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
+            -Dsonar.projectKey=your_organization_alert-service
+            -Dsonar.organization=your_organization_name
             -Dsonar.sources=.
             -Dsonar.exclusions=tests/**,example_client.py,mqtt_configs.py,mosquitto.conf,docker-compose.yml,mosquitto.log,*.md
             -Dsonar.tests=tests
