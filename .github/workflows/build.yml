@@ -70,7 +70,7 @@ jobs:
         with:
           args: >
             -Dsonar.projectKey=Estadio-do-Dragao-app_Alert-Service
-            -Dsonar.organization=Estadio-do-Dragao-app
+            -Dsonar.organization=estadio-do-Dragao-app
             -Dsonar.sources=.
             -Dsonar.exclusions=tests/**,example_client.py,mqtt_configs.py,mosquitto.conf,docker-compose.yml,mosquitto.log,*.md
             -Dsonar.tests=tests
