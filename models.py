@@ -70,7 +70,7 @@ class Alert(BaseModel):
     """Alert to be sent to clients"""
     id: int
     type: AlertType
-    disabled_tiles: list = Field(default_factory=list)  # Tile IDs or Sector Names
+    disabled_tiles: list[int | str] = Field(default_factory=list)  # Tile IDs or Sector Names
     message: str
     level: Optional[int] = None
     timestamp: datetime = Field(default_factory=datetime.now)
@@ -85,4 +85,4 @@ class ClientAlert(BaseModel):
     level: Optional[int] = None
     timestamp: str
     severity: str
-    affected_areas: list = Field(default_factory=list)
+    affected_areas: list[int | str] = Field(default_factory=list)
