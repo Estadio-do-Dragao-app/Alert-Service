@@ -3,7 +3,7 @@ import time
 import signal
 import sys
 from mqtt_handler import MQTTAlertHandler
-from models import EmergencyEvent, Alert
+from schemas import EmergencyEvent, Alert
 import logging
 
 logging.basicConfig(
