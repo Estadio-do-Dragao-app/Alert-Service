@@ -1,5 +1,7 @@
-FROM python:3.11-slim
+# Autonomous Dockerfile for Alert-Service
+FROM python:3.10-slim
 
+ENV PYTHONPATH=/app
 WORKDIR /app
 
 COPY requirements.txt .
