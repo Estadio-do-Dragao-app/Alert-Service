@@ -18,9 +18,9 @@ class AlertService:
     
     def __init__(self):
         # Get configuration from environment or use defaults
-        simulator_broker = os.getenv('SIMULATOR_BROKER', '10.255.32.58')
+        simulator_broker = os.getenv('SIMULATOR_BROKER', 'localhost')
         simulator_port = int(os.getenv('SIMULATOR_PORT', 1883))
-        client_broker = os.getenv('MQTT_BROKER', '10.255.32.58')
+        client_broker = os.getenv('MQTT_BROKER', 'localhost')
         client_port = int(os.getenv('MQTT_PORT', 1884))
         simulator_topic = os.getenv('SIMULATOR_TOPIC', 'stadium/events/alerts')
         client_topic_prefix = os.getenv('CLIENT_TOPIC_PREFIX', 'alerts/client')
