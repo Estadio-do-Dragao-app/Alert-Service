@@ -3,7 +3,7 @@ import json
 import logging
 from datetime import datetime
 from typing import Callable, Optional
-from schemas import EmergencyEvent, Alert, ClientAlert
+from schemas import EmergencyEvent, Alert, ClientAlert, AlertType
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
