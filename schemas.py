@@ -38,3 +38,5 @@ class ClientAlert(BaseModel):
     severity: str
     affected_areas: List[str]
     level: str
+    priority: str = "CRITICAL"
+    expiry_time: Optional[str] = None

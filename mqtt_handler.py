@@ -1,7 +1,7 @@
 import paho.mqtt.client as mqtt
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Callable, Optional
 from schemas import EmergencyEvent, Alert, ClientAlert, AlertType
 
@@ -41,6 +41,7 @@ class MQTTAlertHandler:
         self.client_publisher = mqtt.Client(client_id="alert_service_publisher")
         self.client_publisher.on_connect = self._on_client_connect
         self.client_publisher.on_disconnect = self._on_client_disconnect
+        self.client_publisher.on_message = self._on_client_message
         
         self.alert_id_counter = 0
         self.message_callback: Optional[Callable] = None
@@ -62,8 +63,21 @@ class MQTTAlertHandler:
         """Handler for MQTT connection event to client broker."""
         if rc == 0:
             logger.info(f"[CLIENT] Connected to broker at {self.client_broker}:{self.client_port}")
+            client.subscribe("alerts/ack/#", qos=2)
+            logger.info(f"[CLIENT] Subscribed to ACK topic: alerts/ack/#")
         else:
             logger.error(f"[CLIENT] Connection failed with code {rc}")
+
+    def _on_client_message(self, client, userdata, msg):
+        """Process incoming ACKs from clients."""
+        try:
+            if msg.topic.startswith("alerts/ack/"):
+                client_id = msg.topic.split("/")[-1]
+                payload = json.loads(msg.payload.decode())
+                alert_id = payload.get("alert_id")
+                logger.info(f"[ACK] Confirmed receipt of alert {alert_id} from client {client_id}")
+        except Exception as e:
+            logger.error(f"[ACK] Error processing acknowledgment: {e}")
     
     def _on_simulator_disconnect(self, client, userdata, rc):
         """Handler for MQTT disconnection event from simulator broker."""
@@ -138,11 +152,13 @@ class MQTTAlertHandler:
             timestamp=alert.timestamp.isoformat(),
             severity=alert.severity,
             affected_areas=alert.disabled_tiles,
-            level=alert.level
+            level=alert.level,
+            priority="CRITICAL",
+            expiry_time=(datetime.now() + timedelta(hours=1)).isoformat()
         )
         
         payload = client_alert.model_dump_json()
-        result = self.client_publisher.publish(self.broadcast_topic, payload, qos=1)
+        result = self.client_publisher.publish(self.broadcast_topic, payload, qos=2)
         
         if result.rc == mqtt.MQTT_ERR_SUCCESS:
             logger.info(f"[CLIENT] Published alert {alert.id} to topic: {self.broadcast_topic} (Level: {alert.level})")
@@ -158,12 +174,14 @@ class MQTTAlertHandler:
             timestamp=alert.timestamp.isoformat(),
             severity=alert.severity,
             affected_areas=alert.disabled_tiles,
-            level=alert.level
+            level=alert.level,
+            priority="CRITICAL",
+            expiry_time=(datetime.now() + timedelta(hours=1)).isoformat()
         )
         
         topic = f"{self.client_topic_prefix}/{client_id}"
         payload = client_alert.model_dump_json()
-        result = self.client_publisher.publish(topic, payload, qos=1)
+        result = self.client_publisher.publish(topic, payload, qos=2)
         
         if result.rc == mqtt.MQTT_ERR_SUCCESS:
             logger.info(f"[CLIENT] Published alert {alert.id} to topic: {topic}")
