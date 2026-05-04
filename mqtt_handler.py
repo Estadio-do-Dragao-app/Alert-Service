@@ -74,7 +74,13 @@ class MQTTAlertHandler:
             if msg.topic.startswith("alerts/ack/"):
                 client_id = msg.topic.split("/")[-1]
                 payload = json.loads(msg.payload.decode())
+                if not isinstance(payload, dict):
+                    logger.warning(f"[ACK] Ignoring malformed acknowledgment from client {client_id}: payload must be a JSON object")
+                    return
                 alert_id = payload.get("alert_id")
+                if alert_id is None:
+                    logger.warning(f"[ACK] Ignoring malformed acknowledgment from client {client_id}: missing alert_id")
+                    return
                 logger.info(f"[ACK] Confirmed receipt of alert {alert_id} from client {client_id}")
         except Exception as e:
             logger.error(f"[ACK] Error processing acknowledgment: {e}")
@@ -143,8 +149,22 @@ class MQTTAlertHandler:
             level=event.level
         )
     
+    def _get_priority_from_severity(self, severity: str) -> str:
+        """Map severity level to MQTT priority."""
+        severity_lower = severity.lower() if severity else "medium"
+        priority_map = {
+            "critical": "CRITICAL",
+            "high": "HIGH",
+            "medium": "MEDIUM",
+            "low": "LOW"
+        }
+        return priority_map.get(severity_lower, "MEDIUM")
+    
     def broadcast_alert(self, alert: Alert):
         """Send alert to all clients via broadcast topic."""
+        priority = self._get_priority_from_severity(alert.severity)
+        expiry_time = (alert.timestamp + timedelta(hours=1)).isoformat()
+        
         client_alert = ClientAlert(
             alert_id=alert.id,
             alert_type=alert.type.value,
@@ -153,20 +173,23 @@ class MQTTAlertHandler:
             severity=alert.severity,
             affected_areas=alert.disabled_tiles,
             level=alert.level,
-            priority="CRITICAL",
-            expiry_time=(datetime.now() + timedelta(hours=1)).isoformat()
+            priority=priority,
+            expiry_time=expiry_time
         )
         
         payload = client_alert.model_dump_json()
         result = self.client_publisher.publish(self.broadcast_topic, payload, qos=2)
         
         if result.rc == mqtt.MQTT_ERR_SUCCESS:
-            logger.info(f"[CLIENT] Published alert {alert.id} to topic: {self.broadcast_topic} (Level: {alert.level})")
+            logger.info(f"[CLIENT] Published alert {alert.id} to topic: {self.broadcast_topic} (Priority: {priority}, Level: {alert.level})")
         else:
             logger.error(f"[CLIENT] Failed to publish alert {alert.id}")
     
     def send_alert_to_client(self, client_id: str, alert: Alert):
         """Send alert to a specific client."""
+        priority = self._get_priority_from_severity(alert.severity)
+        expiry_time = (alert.timestamp + timedelta(hours=1)).isoformat()
+        
         client_alert = ClientAlert(
             alert_id=alert.id,
             alert_type=alert.type.value,
@@ -175,8 +198,8 @@ class MQTTAlertHandler:
             severity=alert.severity,
             affected_areas=alert.disabled_tiles,
             level=alert.level,
-            priority="CRITICAL",
-            expiry_time=(datetime.now() + timedelta(hours=1)).isoformat()
+            priority=priority,
+            expiry_time=expiry_time
         )
         
         topic = f"{self.client_topic_prefix}/{client_id}"
@@ -184,7 +207,7 @@ class MQTTAlertHandler:
         result = self.client_publisher.publish(topic, payload, qos=2)
         
         if result.rc == mqtt.MQTT_ERR_SUCCESS:
-            logger.info(f"[CLIENT] Published alert {alert.id} to topic: {topic}")
+            logger.info(f"[CLIENT] Published alert {alert.id} to topic: {topic} (Priority: {priority})")
         else:
             logger.error(f"[CLIENT] Failed to send alert to client {client_id}")
     
