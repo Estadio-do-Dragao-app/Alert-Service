@@ -23,7 +23,7 @@ def handler():
     return handler
 
 def test_create_alert_from_event(handler, sample_emergency_event):
-    alert = handler._create_alert_from_event(sample_emergency_event)
+    alert = handler.create_alert_from_event(sample_emergency_event)
     assert alert.type == AlertType.FIRE
     assert alert.disabled_tiles == ["B12", "B13"]
     assert alert.message == "FIRE: Fire detected"
@@ -136,7 +136,7 @@ def test_on_client_message_ack_validation_non_dict_payload(handler):
         # Verify warning was logged for non-dict payload
         mock_logger.warning.assert_called_once()
         call_args = mock_logger.warning.call_args[0][0]
-        assert "must be a JSON object" in call_args
+        assert "expected JSON object" in call_args
 
 
 def test_on_client_message_ack_valid(handler):
