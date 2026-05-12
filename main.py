@@ -2,7 +2,7 @@ import time
 import signal
 import sys
 from mqtt_handler import MQTTAlertHandler
-from schemas import EmergencyEvent, Alert
+from schemas import EmergencyEvent
 from mqtt_configs import (
     SIMULATOR_BROKER, SIMULATOR_PORT, SIMULATOR_TOPIC,
     CLIENT_BROKER, CLIENT_PORT, CLIENT_TOPIC_PREFIX

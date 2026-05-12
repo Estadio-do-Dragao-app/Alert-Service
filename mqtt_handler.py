@@ -5,10 +5,9 @@ from datetime import datetime, timedelta
 from typing import Callable, Optional
 from schemas import EmergencyEvent, Alert, ClientAlert, AlertType
 from mqtt_configs import (
-    DEFAULT_QOS, BROADCAST_TOPIC, ACK_TOPIC, DEFAULT_EXPIRY_HOURS
+    DEFAULT_QOS, BROADCAST_TOPIC, ACK_TOPIC, ACK_TOPIC_PREFIX, DEFAULT_EXPIRY_HOURS
 )
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -75,7 +74,7 @@ class MQTTAlertHandler:
     def _on_client_message(self, client, userdata, msg):
         """Asynchronous handler for incoming client acknowledgments (ACKs)."""
         try:
-            if msg.topic.startswith("alerts/ack/"):
+            if msg.topic.startswith(ACK_TOPIC_PREFIX):
                 client_id = msg.topic.split("/")[-1]
                 payload = json.loads(msg.payload.decode())
                 if not isinstance(payload, dict):
@@ -146,7 +145,7 @@ class MQTTAlertHandler:
             message=f"{event.event_type}: {details.get('description', 'Emergency detected')}",
             timestamp=event.timestamp,
             severity=event.severity,
-            level=event.level
+            level=event.level or event.severity or "medium"
         )
     
     def _get_priority_from_severity(self, severity: str) -> str:

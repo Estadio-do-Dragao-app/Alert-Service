@@ -15,5 +15,7 @@ CLIENT_TOPIC_PREFIX = os.getenv('CLIENT_TOPIC_PREFIX', 'alerts/client')
 # MQTT communication parameters and message retention policies
 BROADCAST_TOPIC = os.getenv('BROADCAST_TOPIC', 'alerts/broadcast')
 ACK_TOPIC = os.getenv('ACK_TOPIC', 'alerts/ack/#')
+# Extract prefix from ACK_TOPIC (removes wildcard suffix for topic matching)
+ACK_TOPIC_PREFIX = ACK_TOPIC.rstrip('/#') + '/'
 DEFAULT_QOS = int(os.getenv('DEFAULT_QOS', 2))
 DEFAULT_EXPIRY_HOURS = int(os.getenv('DEFAULT_EXPIRY_HOURS', 1))
