@@ -1,14 +1,27 @@
 import paho.mqtt.client as mqtt
 import json
 import logging
+import ssl
 from datetime import datetime, timedelta
 from typing import Callable, Optional
 from schemas import EmergencyEvent, Alert, ClientAlert, AlertType
 from mqtt_configs import (
-    DEFAULT_QOS, BROADCAST_TOPIC, ACK_TOPIC, ACK_TOPIC_PREFIX, DEFAULT_EXPIRY_HOURS
+    DEFAULT_QOS, BROADCAST_TOPIC, ACK_TOPIC, ACK_TOPIC_PREFIX, DEFAULT_EXPIRY_HOURS,
+    MQTT_USER, MQTT_PASS, MQTT_CA_CERT,
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _configure_mqtt_tls(client: mqtt.Client) -> None:
+    """Apply credentials and optional TLS to a paho Client."""
+    client.username_pw_set(MQTT_USER, MQTT_PASS)
+    if MQTT_CA_CERT:
+        try:
+            client.tls_set(ca_certs=MQTT_CA_CERT, tls_version=ssl.PROTOCOL_TLS_CLIENT)
+            client.tls_insecure_set(False)
+        except Exception as exc:  # pragma: no cover
+            logger.warning("[MQTT][TLS] Could not configure TLS: %s", exc)
 
 
 class MQTTAlertHandler:
@@ -39,12 +52,13 @@ class MQTTAlertHandler:
         self.simulator_client.on_connect = self._on_simulator_connect
         self.simulator_client.on_message = self._on_message
         self.simulator_client.on_disconnect = self._on_simulator_disconnect
-
+        _configure_mqtt_tls(self.simulator_client)
         self.client_publisher = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, client_id="alert_service_publisher")
         self.client_publisher.on_connect = self._on_client_connect
         self.client_publisher.on_disconnect = self._on_client_disconnect
         self.client_publisher.on_message = self._on_client_message
-        
+        _configure_mqtt_tls(self.client_publisher)
+
         # Internal state for alert indexing and external event processing
         self.alert_id_counter = 0
         self.message_callback: Optional[Callable] = None
@@ -86,7 +100,7 @@ class MQTTAlertHandler:
                     return
                 logger.info(f"[ACK] Acknowledgment confirmed for alert {alert_id} from client {client_id}")
         except Exception as e:
-            logger.error(f"[ACK] Logic error during acknowledgment processing: {e}")
+            logger.exception("[ACK] Logic error during acknowledgment processing")
     
     def _on_simulator_disconnect(self, client, userdata, rc):
         """Lifecycle hook: triggered on disconnection from the event source broker."""
@@ -115,9 +129,9 @@ class MQTTAlertHandler:
                 self.broadcast_alert(alert)
                 
         except json.JSONDecodeError as e:
-            logger.error(f"[INGRESS] Failed to decode JSON payload: {e}")
+            logger.exception("[INGRESS] Failed to decode JSON payload")
         except Exception as e:
-            logger.error(f"[INGRESS] Transformation error during message processing: {e}")
+            logger.exception("[INGRESS] Transformation error during message processing")
     
     def create_alert_from_event(self, event: EmergencyEvent) -> Alert:
         """Transforms a normalized emergency event into an actionable Alert object."""
@@ -212,7 +226,7 @@ class MQTTAlertHandler:
             
             logger.info("MQTT Handler operational: Ingress and Egress loops established")
         except Exception as e:
-            logger.error(f"Critical initialization failure for MQTT clients: {e}")
+            logger.exception("Critical initialization failure for MQTT clients")
             raise
     
     def stop(self):
