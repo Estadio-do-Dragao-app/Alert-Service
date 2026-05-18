@@ -144,11 +144,125 @@ def test_on_client_message_ack_valid(handler):
     msg = Mock()
     msg.topic = "alerts/ack/client_456"
     msg.payload = json.dumps({"alert_id": 42}).encode()
-    
+
     with patch('mqtt_handler.logger') as mock_logger:
         handler._on_client_message(None, None, msg)
-        # Verify info was logged for successful ACK
         mock_logger.info.assert_called_once()
         call_args = mock_logger.info.call_args[0][0]
         assert "42" in call_args
         assert "client_456" in call_args
+
+
+def test_on_simulator_connect_success(handler):
+    """Test simulator on_connect with rc=0 subscribes to topic."""
+    client = Mock()
+    handler._on_simulator_connect(client, None, {}, 0)
+    client.subscribe.assert_called_once_with(handler.simulator_topic)
+
+
+def test_on_simulator_connect_failure(handler):
+    """Test simulator on_connect with rc!=0 logs error."""
+    with patch('mqtt_handler.logger') as mock_logger:
+        handler._on_simulator_connect(Mock(), None, {}, 1)
+        mock_logger.error.assert_called_once()
+
+
+def test_on_client_connect_success(handler):
+    """Test client on_connect with rc=0 subscribes to ACK topic."""
+    client = Mock()
+    handler._on_client_connect(client, None, {}, 0)
+    client.subscribe.assert_called_once()
+
+
+def test_on_client_connect_failure(handler):
+    """Test client on_connect with rc!=0 logs error."""
+    with patch('mqtt_handler.logger') as mock_logger:
+        handler._on_client_connect(Mock(), None, {}, 5)
+        mock_logger.error.assert_called_once()
+
+
+def test_on_simulator_disconnect_unexpected(handler):
+    """Test simulator on_disconnect with non-zero rc logs warning."""
+    with patch('mqtt_handler.logger') as mock_logger:
+        handler._on_simulator_disconnect(None, None, 1)
+        mock_logger.warning.assert_called_once()
+
+
+def test_on_simulator_disconnect_clean(handler):
+    """Test simulator on_disconnect with rc=0 does not log warning."""
+    with patch('mqtt_handler.logger') as mock_logger:
+        handler._on_simulator_disconnect(None, None, 0)
+        mock_logger.warning.assert_not_called()
+
+
+def test_on_client_disconnect_unexpected(handler):
+    """Test client on_disconnect with non-zero rc logs warning."""
+    with patch('mqtt_handler.logger') as mock_logger:
+        handler._on_client_disconnect(None, None, 1)
+        mock_logger.warning.assert_called_once()
+
+
+def test_on_message_no_callback_broadcasts(handler, sample_emergency_event):
+    """Test _on_message falls back to create_alert+broadcast when no callback set."""
+    handler.message_callback = None
+    handler.client_publisher.publish = Mock(return_value=Mock(rc=0))
+
+    payload = sample_emergency_event.model_dump_json().encode()
+    msg = Mock(payload=payload)
+    handler._on_message(None, None, msg)
+
+    handler.client_publisher.publish.assert_called_once()
+
+
+def test_on_message_invalid_json(handler):
+    """Test _on_message logs error on malformed JSON."""
+    msg = Mock(payload=b"not json {")
+    with patch('mqtt_handler.logger') as mock_logger:
+        handler._on_message(None, None, msg)
+        mock_logger.error.assert_called()
+
+
+def test_on_message_exception(handler):
+    """Test _on_message logs error on unexpected exception."""
+    msg = Mock(payload=b'{"event_id": "x"}')
+    with patch('mqtt_handler.logger') as mock_logger:
+        handler._on_message(None, None, msg)
+        mock_logger.error.assert_called()
+
+
+def test_broadcast_alert_publish_failure(handler, sample_alert):
+    """Test broadcast_alert logs error when publish fails."""
+    handler.client_publisher.publish = Mock(return_value=Mock(rc=1))
+    with patch('mqtt_handler.logger') as mock_logger:
+        handler.broadcast_alert(sample_alert)
+        mock_logger.error.assert_called_once()
+
+
+def test_send_alert_to_client_publish_failure(handler, sample_alert):
+    """Test send_alert_to_client logs error when publish fails."""
+    handler.client_publisher.publish = Mock(return_value=Mock(rc=1))
+    with patch('mqtt_handler.logger') as mock_logger:
+        handler.send_alert_to_client("client_1", sample_alert)
+        mock_logger.error.assert_called_once()
+
+
+def test_start_exception(handler):
+    """Test start() logs error and re-raises on connection failure."""
+    handler.simulator_client.connect = Mock(side_effect=Exception("timeout"))
+    with pytest.raises(Exception, match="timeout"):
+        handler.start()
+
+
+def test_stop(handler):
+    """Test stop() calls loop_stop and disconnect on both clients."""
+    handler.simulator_client.loop_stop = Mock()
+    handler.simulator_client.disconnect = Mock()
+    handler.client_publisher.loop_stop = Mock()
+    handler.client_publisher.disconnect = Mock()
+
+    handler.stop()
+
+    handler.simulator_client.loop_stop.assert_called_once()
+    handler.simulator_client.disconnect.assert_called_once()
+    handler.client_publisher.loop_stop.assert_called_once()
+    handler.client_publisher.disconnect.assert_called_once()
