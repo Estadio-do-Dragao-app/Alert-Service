@@ -19,3 +19,8 @@ ACK_TOPIC = os.getenv('ACK_TOPIC', 'alerts/ack/#')
 ACK_TOPIC_PREFIX = ACK_TOPIC.rstrip('/#') + '/'
 DEFAULT_QOS = int(os.getenv('DEFAULT_QOS', 2))
 DEFAULT_EXPIRY_HOURS = int(os.getenv('DEFAULT_EXPIRY_HOURS', 1))
+
+# --- TLS / Authentication ---
+MQTT_USER = os.getenv('MQTT_USER', 'services')
+MQTT_PASS = os.getenv('MQTT_PASS', 'dragao_mqtt_2026')
+MQTT_CA_CERT = os.getenv('MQTT_CA_CERT', '')  # e.g. /certs/ca.crt
