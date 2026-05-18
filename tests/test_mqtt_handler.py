@@ -219,7 +219,7 @@ def test_on_message_invalid_json(handler):
     msg = Mock(payload=b"not json {")
     with patch('mqtt_handler.logger') as mock_logger:
         handler._on_message(None, None, msg)
-        mock_logger.error.assert_called()
+        mock_logger.exception.assert_called()
 
 
 def test_on_message_exception(handler):
@@ -227,7 +227,7 @@ def test_on_message_exception(handler):
     msg = Mock(payload=b'{"event_id": "x"}')
     with patch('mqtt_handler.logger') as mock_logger:
         handler._on_message(None, None, msg)
-        mock_logger.error.assert_called()
+        mock_logger.exception.assert_called()
 
 
 def test_broadcast_alert_publish_failure(handler, sample_alert):
