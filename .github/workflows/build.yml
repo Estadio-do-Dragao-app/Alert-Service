@@ -2,9 +2,9 @@ name: Build and Test Alert Service
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 
 jobs:
   test:
