@@ -99,7 +99,7 @@ class MQTTAlertHandler:
                     logger.warning(f"[ACK] Malformed ACK from client {client_id}: missing alert_id field")
                     return
                 logger.info(f"[ACK] Acknowledgment confirmed for alert {alert_id} from client {client_id}")
-        except Exception as e:
+        except Exception:
             logger.exception("[ACK] Logic error during acknowledgment processing")
     
     def _on_simulator_disconnect(self, client, userdata, rc):
@@ -128,9 +128,9 @@ class MQTTAlertHandler:
                 alert = self.create_alert_from_event(event)
                 self.broadcast_alert(alert)
                 
-        except json.JSONDecodeError as e:
+        except json.JSONDecodeError:
             logger.exception("[INGRESS] Failed to decode JSON payload")
-        except Exception as e:
+        except Exception:
             logger.exception("[INGRESS] Transformation error during message processing")
     
     def create_alert_from_event(self, event: EmergencyEvent) -> Alert:
@@ -225,7 +225,7 @@ class MQTTAlertHandler:
             self.client_publisher.loop_start()
             
             logger.info("MQTT Handler operational: Ingress and Egress loops established")
-        except Exception as e:
+        except Exception:
             logger.exception("Critical initialization failure for MQTT clients")
             raise
     

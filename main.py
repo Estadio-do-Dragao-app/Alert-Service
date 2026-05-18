@@ -79,7 +79,7 @@ class AlertService:
                 
         except KeyboardInterrupt:
             logger.info("\nInterrupted by user. Initiating shutdown procedure...")
-        except Exception as e:
+        except Exception:
             logger.exception("Critical error in Alert Service runtime")
         finally:
             self.stop()
