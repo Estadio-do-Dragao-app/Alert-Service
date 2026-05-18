@@ -48,13 +48,12 @@ class MQTTAlertHandler:
         self.broadcast_topic = BROADCAST_TOPIC
         
         # Isolated MQTT clients to manage distinct broker lifecycles independently
-        self.simulator_client = mqtt.Client(client_id="alert_service_receiver")
+        self.simulator_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, client_id="alert_service_receiver")
         self.simulator_client.on_connect = self._on_simulator_connect
         self.simulator_client.on_message = self._on_message
         self.simulator_client.on_disconnect = self._on_simulator_disconnect
         _configure_mqtt_tls(self.simulator_client)
-
-        self.client_publisher = mqtt.Client(client_id="alert_service_publisher")
+        self.client_publisher = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, client_id="alert_service_publisher")
         self.client_publisher.on_connect = self._on_client_connect
         self.client_publisher.on_disconnect = self._on_client_disconnect
         self.client_publisher.on_message = self._on_client_message
