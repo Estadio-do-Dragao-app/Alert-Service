@@ -5,7 +5,7 @@ ENV PYTHONPATH=/app
 WORKDIR /app
 
 COPY requirements.lock.txt .
-RUN pip install --no-cache-dir --only-binary :all: -r requirements.lock.txt
+RUN pip install --no-cache-dir --only-binary :all: --no-deps --require-hashes -r requirements.lock.txt
 
 COPY main.py mqtt_configs.py mqtt_handler.py schemas.py ./
 # Create non-root user
